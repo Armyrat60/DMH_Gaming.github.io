@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Background shapes animation
     const backgroundShapes = document.querySelector('.background-shapes');
     const suits = ['spade', 'heart', 'diamond', 'club'];
     const shapes = [];
@@ -20,12 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         update() {
-            // Update position
             this.x += this.speedX;
             this.y += this.speedY;
             this.rotation += this.rotationSpeed;
             
-            // Boundary checking
             if (this.x <= 0 || this.x >= window.innerWidth - this.width) {
                 this.speedX *= -1;
             }
@@ -33,7 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.speedY *= -1;
             }
 
-            // Apply position and rotation
             this.element.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${this.rotation}deg)`;
         }
 
@@ -45,31 +43,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         handleCollision(other) {
-            // Calculate collision response
             const dx = other.x - this.x;
             const dy = other.y - this.y;
             const angle = Math.atan2(dy, dx);
             
-            // Update velocities
             const speed = Math.sqrt(this.speedX * this.speedX + this.speedY * this.speedY);
             this.speedX = -Math.cos(angle) * speed;
             this.speedY = -Math.sin(angle) * speed;
             
-            // Adjust rotation
             this.rotationSpeed *= -0.8;
         }
     }
 
-    // Add card suits (increased by 40%)
+    // Add card suits
     for (let i = 0; i < 34; i++) {
         const shape = document.createElement('div');
         shape.className = `shape ${suits[Math.floor(Math.random() * suits.length)]}`;
         
-        // Random starting position with better distribution
         const x = Math.random() * (window.innerWidth - 60);
         const y = Math.random() * (window.innerHeight - 60);
         
-        // Random velocities
         const angle = Math.random() * Math.PI * 2;
         const speed = Math.random() * 0.5 + 0.5;
         const speedX = Math.cos(angle) * speed;
@@ -83,12 +76,9 @@ document.addEventListener('DOMContentLoaded', () => {
         shapes.push(new Shape(shape, x, y, speedX, speedY, rotation));
     }
 
-    // Animation loop
     function animate() {
-        // Update positions
         shapes.forEach(shape => shape.update());
 
-        // Check collisions
         for (let i = 0; i < shapes.length; i++) {
             for (let j = i + 1; j < shapes.length; j++) {
                 if (shapes[i].checkCollision(shapes[j])) {
@@ -103,7 +93,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
     animate();
 
-    // Rest of your existing code for smooth scrolling, copyright, slideshows, etc.
+    // Hero Gallery
+    const slides = document.querySelectorAll('.hero-slide');
+    const prevButton = document.querySelector('.prev-slide');
+    const nextButton = document.querySelector('.next-slide');
+    const dotsContainer = document.querySelector('.hero-dots');
+
+    if (slides.length && prevButton && nextButton && dotsContainer) {
+        let currentSlide = 0;
+
+        // Create dots
+        slides.forEach((_, index) => {
+            const dot = document.createElement('div');
+            dot.className = `hero-dot${index === 0 ? ' active' : ''}`;
+            dot.addEventListener('click', () => goToSlide(index));
+            dotsContainer.appendChild(dot);
+        });
+
+        const dots = document.querySelectorAll('.hero-dot');
+
+        function updateSlides() {
+            slides.forEach(slide => slide.classList.remove('active'));
+            dots.forEach(dot => dot.classList.remove('active'));
+            
+            slides[currentSlide].classList.add('active');
+            dots[currentSlide].classList.add('active');
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            updateSlides();
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            updateSlides();
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateSlides();
+        }
+
+        prevButton.addEventListener('click', prevSlide);
+        nextButton.addEventListener('click', nextSlide);
+
+        // Auto advance slides
+        setInterval(nextSlide, 5000);
+    }
+
+    // Smooth scrolling
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
@@ -116,13 +155,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Copyright year
     const yearSpan = document.querySelector('.copyright-year');
     if (yearSpan) {
         yearSpan.textContent = new Date().getFullYear();
     }
 
+    // Game card slideshows
     function initializeSlideshow(container) {
         const slides = container.querySelectorAll('.slide');
+        if (slides.length === 0) return;
+
         let currentSlide = 0;
 
         function showSlide(index) {
@@ -140,29 +183,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.querySelectorAll('.game-card-slideshow').forEach(slideshow => {
-        initializeSlideshow(slideshow);
+        if (slideshow) {
+            initializeSlideshow(slideshow);
+        }
     });
 
+    // Modal functionality
     const modal = document.getElementById('gallery-modal');
     const modalImg = document.getElementById('modal-img');
     const modalClose = document.querySelector('.modal-close');
     const modalCaption = document.querySelector('.modal-caption');
 
-    document.querySelectorAll('.slide').forEach(slide => {
-        slide.addEventListener('click', () => {
-            modal.style.display = 'flex';
-            modalImg.src = slide.dataset.full;
-            modalCaption.textContent = slide.querySelector('img').alt;
+    if (modal && modalImg && modalClose && modalCaption) {
+        document.querySelectorAll('.slide[data-full]').forEach(slide => {
+            slide.addEventListener('click', () => {
+                modal.style.display = 'flex';
+                modalImg.src = slide.dataset.full;
+                const img = slide.querySelector('img');
+                if (img) {
+                    modalCaption.textContent = img.alt;
+                }
+            });
         });
-    });
 
-    modalClose.addEventListener('click', () => {
-        modal.style.display = 'none';
-    });
-
-    window.addEventListener('click', (e) => {
-        if (e.target === modal) {
+        modalClose.addEventListener('click', () => {
             modal.style.display = 'none';
-        }
-    });
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
 });
