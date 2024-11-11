@@ -1,44 +1,61 @@
 export function initHeroGallery() {
-    const slides = document.querySelectorAll('.hero-slide');
-    const prevButton = document.querySelector('.prev-slide');
-    const nextButton = document.querySelector('.next-slide');
-    const dotsContainer = document.querySelector('.hero-dots');
+    const galleryContainer = document.querySelector('.hero-gallery');
+    if (!galleryContainer) return;
+
+    // Sample hero images (in production, these would be loaded dynamically)
+    const heroImages = [
+        '/assets/hero/hero1.jpg',
+        '/assets/hero/hero2.jpg',
+        '/assets/hero/hero3.jpg',
+        '/assets/hero/hero4.jpg'
+    ];
+
+    // Clear existing content
+    galleryContainer.innerHTML = '';
     
-    if (!slides.length || !prevButton || !nextButton || !dotsContainer) {
-        console.warn('Hero gallery elements not found');
-        return;
-    }
+    // Create slides
+    heroImages.forEach((image, index) => {
+        const slide = document.createElement('div');
+        slide.className = `hero-slide${index === 0 ? ' active' : ''}`;
+        slide.style.backgroundImage = `url(${image})`;
+        galleryContainer.appendChild(slide);
+    });
 
-    let currentSlide = 0;
-    let slideInterval;
+    // Create controls
+    const controls = document.createElement('div');
+    controls.className = 'hero-controls';
+    controls.innerHTML = `
+        <button class="prev-slide" aria-label="Previous slide">❮</button>
+        <button class="next-slide" aria-label="Next slide">❯</button>
+    `;
+    galleryContainer.appendChild(controls);
 
-    // Clear existing dots and create new ones
-    dotsContainer.innerHTML = '';
-    slides.forEach((_, index) => {
+    // Create dots
+    const dotsContainer = document.createElement('div');
+    dotsContainer.className = 'hero-dots';
+    heroImages.forEach((_, index) => {
         const dot = document.createElement('div');
         dot.className = `hero-dot${index === 0 ? ' active' : ''}`;
         dot.addEventListener('click', () => goToSlide(index));
         dotsContainer.appendChild(dot);
     });
+    galleryContainer.appendChild(dotsContainer);
 
+    // Initialize controls
+    const slides = document.querySelectorAll('.hero-slide');
+    const prevButton = document.querySelector('.prev-slide');
+    const nextButton = document.querySelector('.next-slide');
     const dots = document.querySelectorAll('.hero-dot');
+    
+    let currentSlide = 0;
+    let slideInterval;
 
     function updateSlides() {
-        slides.forEach((slide, index) => {
-            if (index === currentSlide) {
-                slide.classList.add('active');
-                slide.style.opacity = '1';
-                slide.style.zIndex = '1';
-            } else {
-                slide.classList.remove('active');
-                slide.style.opacity = '0';
-                slide.style.zIndex = '0';
-            }
-        });
+        slides.forEach(slide => slide.classList.remove('active'));
+        dots.forEach(dot => dot.classList.remove('active'));
         
-        dots.forEach((dot, index) => {
-            dot.classList.toggle('active', index === currentSlide);
-        });
+        slides[currentSlide].classList.add('active');
+        dots[currentSlide].classList.add('active');
     }
 
     function nextSlide() {
@@ -62,21 +79,19 @@ export function initHeroGallery() {
         slideInterval = setInterval(nextSlide, 5000);
     }
 
-    prevButton.addEventListener('click', () => {
+    prevButton?.addEventListener('click', () => {
         prevSlide();
         resetInterval();
     });
 
-    nextButton.addEventListener('click', () => {
+    nextButton?.addEventListener('click', () => {
         nextSlide();
         resetInterval();
     });
 
-    // Initialize first slide
-    updateSlides();
-    resetInterval();
+    galleryContainer.addEventListener('mouseenter', () => clearInterval(slideInterval));
+    galleryContainer.addEventListener('mouseleave', resetInterval);
 
-    const heroGallery = document.querySelector('.hero-gallery');
-    heroGallery.addEventListener('mouseenter', () => clearInterval(slideInterval));
-    heroGallery.addEventListener('mouseleave', resetInterval);
+    // Start slideshow
+    resetInterval();
 }
