@@ -24,12 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         update() {
-            // Update position
             this.x += this.speedX;
             this.y += this.speedY;
             this.rotation += this.rotationSpeed;
             
-            // Bounce off screen boundaries
             if (this.x <= 0 || this.x >= window.innerWidth - this.width) {
                 this.speedX *= -1;
             }
@@ -37,7 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.speedY *= -1;
             }
 
-            // Apply new position and rotation
             this.element.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${this.rotation}deg)`;
         }
 
@@ -49,17 +46,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         handleCollision(other) {
-            // Calculate collision angle
             const dx = other.x - this.x;
             const dy = other.y - this.y;
             const angle = Math.atan2(dy, dx);
             
-            // Update velocity based on collision
             const speed = Math.sqrt(this.speedX * this.speedX + this.speedY * this.speedY);
             this.speedX = -Math.cos(angle) * speed;
             this.speedY = -Math.sin(angle) * speed;
             
-            // Add some rotation on collision
             this.rotationSpeed *= -0.8;
         }
     }
@@ -69,11 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const shape = document.createElement('div');
         shape.className = `shape ${suits[Math.floor(Math.random() * suits.length)]}`;
         
-        // Random starting position
         const x = Math.random() * (window.innerWidth - 60);
         const y = Math.random() * (window.innerHeight - 60);
         
-        // Random movement direction and speed
         const angle = Math.random() * Math.PI * 2;
         const speed = Math.random() * 0.5 + 0.5;
         const speedX = Math.cos(angle) * speed;
@@ -87,11 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
         shapes.push(new Shape(shape, x, y, speedX, speedY, rotation));
     }
 
-    // Animation loop for background shapes
     function animate() {
         shapes.forEach(shape => shape.update());
 
-        // Check for collisions between shapes
         for (let i = 0; i < shapes.length; i++) {
             for (let j = i + 1; j < shapes.length; j++) {
                 if (shapes[i].checkCollision(shapes[j])) {
@@ -108,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Hero Section Gallery
-     * Manages the main hero section slideshow
      */
     function initHeroGallery() {
         const slides = document.querySelectorAll('.hero-slide');
@@ -121,7 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let currentSlide = 0;
         let slideInterval;
 
-        // Create navigation dots
+        // Clear existing dots and create new ones
+        dotsContainer.innerHTML = '';
         slides.forEach((_, index) => {
             const dot = document.createElement('div');
             dot.className = `hero-dot${index === 0 ? ' active' : ''}`;
@@ -132,11 +122,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const dots = document.querySelectorAll('.hero-dot');
 
         function updateSlides() {
-            slides.forEach(slide => slide.classList.remove('active'));
-            dots.forEach(dot => dot.classList.remove('active'));
-            
-            slides[currentSlide].classList.add('active');
-            dots[currentSlide].classList.add('active');
+            slides.forEach((slide, index) => {
+                slide.style.opacity = index === currentSlide ? '1' : '0';
+                slide.style.zIndex = index === currentSlide ? '1' : '0';
+            });
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSlide);
+            });
         }
 
         function nextSlide() {
@@ -160,7 +152,6 @@ document.addEventListener('DOMContentLoaded', () => {
             slideInterval = setInterval(nextSlide, 5000);
         }
 
-        // Event listeners for navigation
         prevButton.addEventListener('click', () => {
             prevSlide();
             resetInterval();
@@ -171,7 +162,8 @@ document.addEventListener('DOMContentLoaded', () => {
             resetInterval();
         });
 
-        // Start automatic slideshow
+        // Initialize first slide
+        updateSlides();
         resetInterval();
 
         // Pause on hover
@@ -182,21 +174,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Game Card Slideshows
-     * Manages the automatic slideshows in game cards
      */
     function initializeGameSlideshows() {
         const slideshows = document.querySelectorAll('.game-card-slideshow');
         
         slideshows.forEach(slideshow => {
             const slides = slideshow.querySelectorAll('.slide');
-            if (slides.length === 0) return;
+            if (!slides.length) return;
 
             let currentSlide = 0;
             let slideInterval;
 
             function showSlide(index) {
-                slides.forEach(slide => slide.style.display = 'none');
-                slides[index].style.display = 'block';
+                slides.forEach((slide, i) => {
+                    slide.style.display = i === index ? 'block' : 'none';
+                    slide.style.opacity = i === index ? '1' : '0';
+                });
             }
 
             function nextSlide() {
@@ -211,12 +204,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             startSlideshow();
 
-            // Pause on hover
             slideshow.addEventListener('mouseenter', () => clearInterval(slideInterval));
             slideshow.addEventListener('mouseleave', () => {
                 clearInterval(slideInterval);
                 slideInterval = setInterval(nextSlide, 4000);
             });
+
+            // Initialize first slide
+            showSlide(0);
         });
     }
 
@@ -225,30 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeGameSlideshows();
 
     /**
-     * Smooth Scrolling
-     * Enables smooth scroll behavior for navigation links
-     */
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth'
-                });
-            }
-        });
-    });
-
-    // Update copyright year
-    const yearSpan = document.querySelector('.copyright-year');
-    if (yearSpan) {
-        yearSpan.textContent = new Date().getFullYear();
-    }
-
-    /**
-     * Image Modal
-     * Handles the fullscreen image modal functionality
+     * Modal System
      */
     const modal = document.getElementById('gallery-modal');
     const modalImg = document.getElementById('modal-img');
@@ -256,7 +228,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalCaption = document.querySelector('.modal-caption');
 
     if (modal && modalImg && modalClose && modalCaption) {
-        // Add click handlers for all slides with full-size images
         document.querySelectorAll('.slide[data-full]').forEach(slide => {
             slide.addEventListener('click', () => {
                 modal.style.display = 'flex';
@@ -268,7 +239,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Close modal handlers
         modalClose.addEventListener('click', () => {
             modal.style.display = 'none';
         });
@@ -278,5 +248,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 modal.style.display = 'none';
             }
         });
+    }
+
+    // Update copyright year
+    const yearSpan = document.querySelector('.copyright-year');
+    if (yearSpan) {
+        yearSpan.textContent = new Date().getFullYear();
     }
 });

@@ -7,6 +7,23 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    assetsDir: 'assets'
+    assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          background: ['./src/js/background.js'],
+          gallery: ['./src/js/gallery.js'],
+          gameSlideshow: ['./src/js/gameSlideshow.js'],
+          modal: ['./src/js/modal.js']
+        }
+      }
+    },
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
+    }
   }
 });
