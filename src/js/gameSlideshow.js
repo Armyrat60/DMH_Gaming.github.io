@@ -3,15 +3,25 @@ export function initializeGameSlideshows() {
     
     slideshows.forEach(slideshow => {
         const slides = slideshow.querySelectorAll('.slide');
-        if (!slides.length) return;
+        if (!slides.length) {
+            console.warn('No slides found in game card slideshow');
+            return;
+        }
 
         let currentSlide = 0;
         let slideInterval;
 
         function showSlide(index) {
             slides.forEach((slide, i) => {
-                slide.style.display = i === index ? 'block' : 'none';
-                slide.style.opacity = i === index ? '1' : '0';
+                if (i === index) {
+                    slide.classList.add('active');
+                    slide.style.display = 'block';
+                    slide.style.opacity = '1';
+                } else {
+                    slide.classList.remove('active');
+                    slide.style.display = 'none';
+                    slide.style.opacity = '0';
+                }
             });
         }
 
@@ -31,6 +41,7 @@ export function initializeGameSlideshows() {
             slideInterval = setInterval(nextSlide, 4000);
         });
 
+        // Initialize first slide and start slideshow
         showSlide(0);
         startSlideshow();
     });

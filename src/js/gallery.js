@@ -4,11 +4,15 @@ export function initHeroGallery() {
     const nextButton = document.querySelector('.next-slide');
     const dotsContainer = document.querySelector('.hero-dots');
     
-    if (!slides.length || !prevButton || !nextButton || !dotsContainer) return;
+    if (!slides.length || !prevButton || !nextButton || !dotsContainer) {
+        console.warn('Hero gallery elements not found');
+        return;
+    }
 
     let currentSlide = 0;
     let slideInterval;
 
+    // Clear existing dots and create new ones
     dotsContainer.innerHTML = '';
     slides.forEach((_, index) => {
         const dot = document.createElement('div');
@@ -21,9 +25,17 @@ export function initHeroGallery() {
 
     function updateSlides() {
         slides.forEach((slide, index) => {
-            slide.style.opacity = index === currentSlide ? '1' : '0';
-            slide.style.zIndex = index === currentSlide ? '1' : '0';
+            if (index === currentSlide) {
+                slide.classList.add('active');
+                slide.style.opacity = '1';
+                slide.style.zIndex = '1';
+            } else {
+                slide.classList.remove('active');
+                slide.style.opacity = '0';
+                slide.style.zIndex = '0';
+            }
         });
+        
         dots.forEach((dot, index) => {
             dot.classList.toggle('active', index === currentSlide);
         });
@@ -60,6 +72,7 @@ export function initHeroGallery() {
         resetInterval();
     });
 
+    // Initialize first slide
     updateSlides();
     resetInterval();
 
